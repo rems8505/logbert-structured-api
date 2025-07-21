@@ -34,6 +34,7 @@ import torch
 
 import gradio as gr
 import requests
+from llm import analyze_log  # Import your RCA function
 
 API_URL = "http://localhost:8002/bert/predict"
 
@@ -53,7 +54,7 @@ def predict_log(text):
 
         # Class names
         class_names = ["Normal", "Anomaly"]  # Adjust as needed
-        result = {class_names[i]: round(prob * 100, 2) for i, prob in enumerate(probabilities)}
+        result = {class_names[i]: round(prob , 2) for i, prob in enumerate(probabilities)}
 
         return result, class_names[prediction]
 
@@ -63,9 +64,34 @@ def predict_log(text):
     except Exception as e:
         return {"Error": str(e)}, "Internal Error"
 
+# RCA processing logic
+def process_log(log_input):
+    result = analyze_log(log_input)
+    if "error" in result:
+        return f"Error: {result['error']}\nDetails: {result['details']}"
+    return f"🧠 Root Cause:\n{result['root_cause']}\n\n🔧 Suggested Fix:\n{result['suggested_fix']}"
 
-# Create Gradio Interface
-demo = gr.Interface(
+
+
+# # Create Gradio Interface
+# demo = gr.Interface(
+#     fn=predict_log,
+#     inputs=gr.Textbox(lines=5, placeholder="Enter log text here..."),
+#     outputs=[
+#         gr.Label(label="Confidence Scores"),
+#         gr.Textbox(label="Prediction")
+#     ],
+#     title="LLogBERT Log Anomaly Detector",
+#     description="Enter a log message to classify it as normal or anomalous.",
+#     examples=[
+#         ["2025-07-20 10:23:45.123 2931 INFO nova.compute.manager [req-abc123] Starting instance: instance-001"],
+#         ["2025-07-20 10:23:45.123 2931 INFO nova.compute.manager [req-abc123] Starting instance: instance-001"],
+#     ]
+# )
+
+
+# --- Interface 1: Anomaly Detection ---
+anomaly_ui = gr.Interface(
     fn=predict_log,
     inputs=gr.Textbox(lines=5, placeholder="Enter log text here..."),
     outputs=[
@@ -79,6 +105,19 @@ demo = gr.Interface(
         ["2025-07-20 10:23:45.123 2931 INFO nova.compute.manager [req-abc123] Starting instance: instance-001"],
     ]
 )
+
+# --- Interface 2: LLM-based RCA ---
+rca_ui = gr.Interface(
+    fn=process_log,
+    inputs=gr.Textbox(lines=5, placeholder="Paste anomalous log here..."),
+    outputs="textbox",
+    title="Root Cause Analysis (LLM-powered)",
+    description="Uses Gemini LLM to analyze anomalous logs and suggest root causes + fixes."
+)
+
+# Combine both UIs using tabs
+demo = gr.TabbedInterface([anomaly_ui, rca_ui], ["Anomaly Detection", "Root Cause Analysis"])
+
 
 if __name__ == "__main__":
     demo.launch(share=True)
