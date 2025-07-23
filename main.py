@@ -10,6 +10,10 @@ from fastapi import APIRouter, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 
+
+from fastapi.responses import Response # Prometheus_Monitoring
+from prometheus_client import generate_latest # Prometheus_Monitoring
+
 # from app.api import api_router
 from config import settings
 import bert
@@ -18,8 +22,15 @@ app = FastAPI(
     title=settings.PROJECT_NAME, openapi_url=f"{settings.API_V1_STR}/openapi.json"
 )
 
+from bert import router as bert_router #Prometheus_Monitoring
 root_router = APIRouter()
 app.include_router(bert.router, prefix="/bert", tags=["bert"])
+
+@app.get("/metrics") #Prometheus_Monitoring
+async def get_metrics(): #Prometheus_Monitoring
+    return Response(media_type="text/plain", content=generate_latest()) #Prometheus_Monitoring
+
+
 
 # Initialize BERT model on startup
 @app.on_event("startup")
