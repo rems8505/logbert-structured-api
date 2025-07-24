@@ -41,12 +41,40 @@ API_URL = "http://localhost:8000/bert/predict"
 
 api_host = os.environ.get("API_HOST", "http://localhost:8000")
 
+#####
+#Reson for commenting this,
+# our current predict_log() function computes everything correctly, but it's missing a final return statement in the successful path.
+# That’s why Gradio gets [None] — it falls off the function without returning anything when no exception occurs.
+# 
+# def predict_log(text):
+#     try:
+#         # Call the FastAPI server
+#         response = requests.post( f"{api_host}/bert/predict", json={"text": text})
+#         response.raise_for_status()  # raises HTTPError if status is 4xx/5xx
+
+#         data = response.json()
+#         prediction = data["label"]
+#         logits = data["logits"]
+
+#         # Convert logits to probabilities
+#         import torch
+#         probabilities = torch.nn.functional.softmax(torch.tensor(logits), dim=1)[0].tolist()
+
+#         # Class names
+#         class_names = ["Normal", "Anomaly"]  # Adjust as needed
+#         result = {class_names[i]: round(prob , 2) for i, prob in enumerate(probabilities)}
+
+#     except requests.exceptions.RequestException as e:
+#         return {"Error": str(e)}, "Request Failed"
+
+#     except Exception as e:
+#         return {"Error": str(e)}, "Internal Error"
 
 def predict_log(text):
     try:
         # Call the FastAPI server
-        response = requests.post( f"{api_host}/bert/predict", json={"text": text})
-        response.raise_for_status()  # raises HTTPError if status is 4xx/5xx
+        response = requests.post(f"{api_host}/bert/predict", json={"text": text})
+        response.raise_for_status()
 
         data = response.json()
         prediction = data["label"]
@@ -57,15 +85,17 @@ def predict_log(text):
         probabilities = torch.nn.functional.softmax(torch.tensor(logits), dim=1)[0].tolist()
 
         # Class names
-        class_names = ["Normal", "Anomaly"]  # Adjust as needed
-        result = {class_names[i]: round(prob , 2) for i, prob in enumerate(probabilities)}
+        class_names = ["Normal", "Anomaly"]
+        result = {class_names[i]: round(prob, 2) for i, prob in enumerate(probabilities)}
+
+        # ✅ Add this return line
+        return prediction, str(result)
 
     except requests.exceptions.RequestException as e:
-        return {"Error": str(e)}, "Request Failed"
+        return "Error", str(e)
 
     except Exception as e:
-        return {"Error": str(e)}, "Internal Error"
-
+        return "Error", str(e)
 
 
 # RCA processing logic
