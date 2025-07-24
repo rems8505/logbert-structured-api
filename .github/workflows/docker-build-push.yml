@@ -40,8 +40,8 @@ jobs:
           file: ./api.Dockerfile
           push: true
           tags: |
-            ${{ env.IMAGE_OWNER }}/logbert-fastapi:${{ env.VERSION }}
-            ${{ env.IMAGE_OWNER }}/logbert-fastapi:latest
+            ${{ env.IMAGE_OWNER }}/fastapi-backend:${{ env.VERSION }}
+            ${{ env.IMAGE_OWNER }}/fastapi-backend:latest
 
       - name: Build and push Gradio Docker image
         uses: docker/build-push-action@v5
@@ -50,5 +50,5 @@ jobs:
           file: ./ui.Dockerfile
           push: true
           tags: |
-            ${{ env.IMAGE_OWNER }}/logbert-gradio:${{ env.VERSION }}
-            ${{ env.IMAGE_OWNER }}/logbert-gradio:latest
+            ${{ env.IMAGE_OWNER }}/gradio-ui:${{ env.VERSION }}
+            ${{ env.IMAGE_OWNER }}/gradio-ui:latest
