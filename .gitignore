@@ -20,3 +20,5 @@ __pycache__/
 */.gitignore
 .gradio
 venv1
+venv
+ve
