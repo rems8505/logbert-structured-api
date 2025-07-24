@@ -1,0 +1,32 @@
+# .github/workflows/deploy-ec2.yml
+name: Deploy to EC2 (Docker Compose)
+
+on:
+  workflow_dispatch:  # ✅ manual trigger only
+
+env:
+  DOCKERHUB_USER: remz01
+  VERSION: ${{ vars.VERSION || 'latest' }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: SSH into EC2 and deploy
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            echo "Pulling Docker images..."
+            docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+            docker pull ${{ env.DOCKERHUB_USER }}/fastapi-backend:${{ env.VERSION }}
+            docker pull ${{ env.DOCKERHUB_USER }}/gradio-ui:${{ env.VERSION }}
+
+            echo "Running docker-compose..."
+            cd ~/logbert-structured-api || git clone https://github.com/rems8505/logbert-structured-api.git && cd logbert-structured-api
+            git pull origin main
+            docker-compose down
+            docker-compose up -d
