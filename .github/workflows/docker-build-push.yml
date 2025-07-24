@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      IMAGE_OWNER: rems8505
+      IMAGE_OWNER: remz01
 
     steps:
       - name: Checkout repository
