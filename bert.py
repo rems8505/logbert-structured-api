@@ -6,8 +6,15 @@ import data_validation.parser as parser
 import torch
 
 from bert_config import bert_settings
+from prometheus_client import Gauge, Counter #Prometheus_Monitoring
 
 router = APIRouter()
+
+# Prometheus_Monitoring metrics
+bert_health_metric = Gauge("bert_api_health", "Health status of BERT API (1=healthy, 0=unhealthy)")
+bert_prediction_counter = Counter("bert_predictions_total", "Total number of predictions made")
+bert_prediction_confidence = Gauge("bert_prediction_confidence", "Confidence score of last prediction")
+
 
 class InputText(BaseModel):
     text: str
@@ -56,13 +63,14 @@ def load_bert_model():
 
 @router.get("/")
 def bert_health():
+    bert_health_metric.set(1)  #Prometheus_Monitoring - Set health to 1 when endpoint is hit
     return {"message": "BERT API is running!"}
-
 
 
 @router.post("/predict")
 def predict_bert(req: InputText):
     if tokenizer is None or model is None:
+        bert_health_metric.set(0)  #Prometheus_Monitoring - Mark unhealthy
         raise HTTPException(status_code=500, detail="Model not loaded")
     # Validate log format before prediction
     # Validate log format before prediction
@@ -84,6 +92,11 @@ def predict_bert(req: InputText):
         
         logits = outputs.logits
         prediction = torch.argmax(logits, dim=1).item()
+
+        
+        bert_prediction_counter.inc() # Prometheus_Monitoring metrics
+        confidence = torch.nn.functional.softmax(logits, dim=1)[0][prediction].item() # Prometheus_Monitoring metrics
+        bert_prediction_confidence.set(round(confidence, 4))  # Prometheus_Monitoring metrics
         
         return {"label": prediction, "logits": logits.tolist()}
     # except ValidationError as ve:

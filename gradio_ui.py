@@ -38,6 +38,7 @@ from llm import analyze_log  # Import your RCA function
 
 API_URL = "http://localhost:8002/bert/predict"
 
+
 def predict_log(text):
     try:
         # Call the FastAPI server
@@ -56,13 +57,13 @@ def predict_log(text):
         class_names = ["Normal", "Anomaly"]  # Adjust as needed
         result = {class_names[i]: round(prob , 2) for i, prob in enumerate(probabilities)}
 
-        return result, class_names[prediction]
-
     except requests.exceptions.RequestException as e:
         return {"Error": str(e)}, "Request Failed"
 
     except Exception as e:
         return {"Error": str(e)}, "Internal Error"
+
+
 
 # RCA processing logic
 def process_log(log_input):
