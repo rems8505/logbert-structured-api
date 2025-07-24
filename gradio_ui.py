@@ -33,16 +33,19 @@ import torch
 #     return result, class_names[prediction]
 
 import gradio as gr
+import os
 import requests
 from llm import analyze_log  # Import your RCA function
 
-API_URL = "http://localhost:8002/bert/predict"
+API_URL = "http://localhost:8000/bert/predict"
+
+api_host = os.environ.get("API_HOST", "http://localhost:8000")
 
 
 def predict_log(text):
     try:
         # Call the FastAPI server
-        response = requests.post(API_URL, json={"text": text})
+        response = requests.post( f"{api_host}/bert/predict", json={"text": text})
         response.raise_for_status()  # raises HTTPError if status is 4xx/5xx
 
         data = response.json()
@@ -111,9 +114,12 @@ anomaly_ui = gr.Interface(
 rca_ui = gr.Interface(
     fn=process_log,
     inputs=gr.Textbox(lines=5, placeholder="Paste anomalous log here..."),
-    outputs="textbox",
+    outputs=gr.Textbox(lines=15, label="LLM Output"),
     title="Root Cause Analysis (LLM-powered)",
-    description="Uses Gemini LLM to analyze anomalous logs and suggest root causes + fixes."
+    description="Uses Gemini LLM to analyze anomalous logs and suggest root causes + fixes.",
+    examples=[
+        "nova-compute.log.2017-05-14_21:27:09 2017-01-18 21:05:51 17409 CRITICAL cinder [-] Bad or unexpected response from the storage volume backend API: volume group cinder-volumes doesnt exist",
+    ]
 )
 
 # Combine both UIs using tabs
@@ -121,4 +127,4 @@ demo = gr.TabbedInterface([anomaly_ui, rca_ui], ["Anomaly Detection", "Root Caus
 
 
 if __name__ == "__main__":
-    demo.launch(share=True)
+    demo.launch(server_name="0.0.0.0", server_port=7860, share=True)
