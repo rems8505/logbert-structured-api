@@ -9,8 +9,11 @@ from bert_config import bert_settings
 
 router = APIRouter()
 
-class InputText(BaseModel):
-    text: str
+# class InputText(BaseModel):
+#     text: str
+
+class LogBatch(BaseModel):
+    lines: List[str] = Field(..., min_items=32, max_items=32)
 
 # Global variables for model components
 tokenizer = None
