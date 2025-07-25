@@ -70,6 +70,33 @@ api_host = os.environ.get("API_HOST", "http://localhost:8000")
 #     except Exception as e:
 #         return {"Error": str(e)}, "Internal Error"
 
+# def predict_log(text):
+#     try:
+#         # Call the FastAPI server
+#         response = requests.post(f"{api_host}/bert/predict", json={"text": text})
+#         response.raise_for_status()
+
+#         data = response.json()
+#         prediction = data["label"]
+#         logits = data["logits"]
+
+#         # Convert logits to probabilities
+#         import torch
+#         probabilities = torch.nn.functional.softmax(torch.tensor(logits), dim=1)[0].tolist()
+
+#         # Class names
+#         class_names = ["Normal", "Anomaly"]
+#         result = {class_names[i]: round(prob, 2) for i, prob in enumerate(probabilities)}
+
+#         # ✅ Add this return line
+#         return prediction, str(result)
+
+#     except requests.exceptions.RequestException as e:
+#         return "Error", str(e)
+
+#     except Exception as e:
+#         return "Error", str(e)
+
 def predict_log(text):
     try:
         # Call the FastAPI server
@@ -85,18 +112,16 @@ def predict_log(text):
         probabilities = torch.nn.functional.softmax(torch.tensor(logits), dim=1)[0].tolist()
 
         # Class names
-        class_names = ["Normal", "Anomaly"]
-        result = {class_names[i]: round(prob, 2) for i, prob in enumerate(probabilities)}
+        class_names = ["Normal", "Anomaly"]  # Adjust as needed
+        result = {class_names[i]: round(prob , 2) for i, prob in enumerate(probabilities)}
 
-        # ✅ Add this return line
-        return prediction, str(result)
+        return result, class_names[prediction]
 
     except requests.exceptions.RequestException as e:
-        return "Error", str(e)
+        return {"Error": str(e)}, "Request Failed"
 
     except Exception as e:
-        return "Error", str(e)
-
+        return {"Error": str(e)}, "Internal Error"
 
 # RCA processing logic
 def process_log(log_input):
