@@ -30,18 +30,18 @@ jobs:
 
       - name: Pull Docker images
         run: |
-          docker pull ${{ env.DOCKERHUB_USER }}/fastapi-backend:latest
-          docker pull ${{ env.DOCKERHUB_USER }}/gradio-ui:latest
+          docker pull ${{ secrets.DOCKER_USERNAME }}/fastapi-backend:latest
+          docker pull ${{ secrets.DOCKER_USERNAME }}/gradio-ui:latest
 
       - name: Stop old containers
         run: |
           cd ~/logbert-structured-api
-          docker compose down
+          docker-compose down
 
       - name: Start new containers
         run: |
           cd ~/logbert-structured-api
-          docker compose up -d --remove-orphans
+          docker-compose up -d --remove-orphans
 
       - name: ✅ Deployment Complete
         run: echo "Deployment to EC2 self-hosted runner completed successfully!"
