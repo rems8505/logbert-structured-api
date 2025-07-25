@@ -1,12 +1,12 @@
 services:
   api:
-    image: remz01/fastapi-backend:0.1.0
+    image: remz01/fastapi-backend:latest
     container_name: fastapi-backend
     ports:
       - "8000:8000"
 
   ui:
-    image: remz01/gradio-ui:0.1.0
+    image: remz01/gradio-ui:latest
     container_name: gradio-ui
     ports:
       - "7860:7860"

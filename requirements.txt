@@ -10,5 +10,6 @@ langchain-google-genai
 pydantic
 langchain-community
 prometheus-client      # for monitoring purpose
+prometheus_client
 gradio
 requests
